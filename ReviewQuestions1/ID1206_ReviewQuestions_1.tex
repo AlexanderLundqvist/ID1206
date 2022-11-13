@@ -1,0 +1,251 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage{comment}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{tikz}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=cyan,
+    filecolor=magenta,
+    urlcolor=blue,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\begin{document}
+
+\title{
+    \textbf{ID1206: Review Questions 1}
+}
+\author{Alexander Lundqvist}
+\date{Fall 2022}
+
+\maketitle
+
+\section{Question 1}
+When a process creates a new process using the fork() operation, which of the following states is shared
+between the parent process and the child process? Stack, Heap, or Shared memory segments?
+
+\subsection{Answer}
+The new process only shares the shared memory segment and nothing else. The child process consists of a copy of the parents address space and receives a copy of the stack and heap.
+
+\pagebreak
+\section{Question 2}
+Explain what the output will be at LINE A.
+\begin{minted}{C}
+int value = 15;
+int main() {
+    pid t pid;
+    pid = fork();
+    if (pid == 0) { /* child process */
+        value += 10;
+        return 0;
+    } else if (pid > 0) { /* parent process */
+        wait(NULL);
+        printf("PARENT: value = %d",value); /* LINE A */
+        return 0;
+    }
+}
+\end{minted}
+\subsection{Answer}
+The output will be 15. If we add a print command to the child process segment we can see that the child process prints 25. This is because fork() returns two values, 0 to the child process and the PID of the child process to the parent process.
+\begin{minted}{C}
+int value = 15;
+int main() {
+  pid_t pid;
+  pid = fork();
+  if (pid == 0) { /* child process */
+    value += 10;
+    printf("Child process: value = %d", value); // Check the value in child process
+    return 0;
+  } else if (pid > 0) { /* parent process */
+    wait(NULL);
+    printf("Parent process: value = %d", value); /* LINE A */
+    return 0;
+  }
+}
+\end{minted}
+
+\pagebreak
+\section{Question 3}
+How many processes are created in the following code?
+\begin{minted}{C}
+int main() {
+    fork();
+    fork();
+    fork();
+}
+\end{minted}
+\subsection{Answer}
+8 processes are created. If we add a print statement after the last fork operation call we can see exactly how many processes gets executed. This is because after each fork, the child continues with the rest of the program after that fork, thus the amount of processes created can be described as $2^n = amount\ of\ processes$ and $n = amount\ of\ fork()\ calls$.
+\begin{minted}{C}
+int main() {
+    fork();
+    fork();
+    fork();
+    printf("Process executed successfully!\n");
+    return 0;
+}
+\end{minted}
+
+
+\section{Question 4}
+See Section 4.1 of the Operating Systems Concepts book. Does the multi-threaded web server described
+in that section exhibit task or data parallelism?
+\subsection{Answer}
+The web server provides clients with web pages and page contents, and because it is multi-threaded it can serve several clients at a time. Since the web server performs the same task to every client, i.e, listen for requests and serve requests, and each process if performed on different subsets of the same data (that being the content on the server), we can say that it exhibits data parallelism.
+
+
+\pagebreak
+\section{Question 5}
+What are two differences between user-level threads and kernel-level threads? Under what circumstances
+is one type better than the other?
+\subsection{Answer}
+User-level threads are easier to create and manage and can also run on any operating system since they aren't known by the kernel. While this sounds like user-level threads are better, kernel threads can take advantage of multiprocessing where as user-level threads can't.
+
+
+
+\section{Question 6}
+Describe the actions taken by a kernel to context-switch between kernel level threads.
+\subsection{Answer}
+Context switching is the act of storing the state of a process/thread so that it can be restored and continue with its execution at a later time. The main action taken by the kernel when context-switching between kernel level threads is that the value in the CPU registers of the thread being switched out gets saved. Then a new process gets selected and the CPU registers gets updated with the values of this new process.
+
+
+
+\section{Question 7}
+Explain the difference between preemptive and non-preemptive scheduling.
+\subsection{Answer}
+Preemptive scheduling is used when a process switches from a running state to a ready state or from a waiting state to a ready state which essentially means that a process may be paused and the control of the CPU can be allocated to a process that for example, could be deemed to have higher priority.
+Non-preemtive scheduling happens when a process switches from a running state to waiting state or when a process terminates. This means that the process controls the CPU until it has finished with its current CPU burst.
+
+\pagebreak
+\section{Question 8}
+Suppose that the following processes arrive for execution at the times indicated. Each process will run
+for the amount of time listed. In answering the questions, use non-preemptive scheduling, and base all decisions on the information you have at the time the decision must be made.
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{c|c|c}
+            \textbf{Process} & \textbf{Arrival Time} & \textbf{Burst Time}\\
+            \hline
+            $p_1$   &   0.0    &   8\\
+            $p_2$   &   0.4    &   4\\
+            $p_3$   &   1.0    &   1\\
+        \end{tabular}
+        \label{tab:table1}
+    \end{center}
+\end{table}
+
+\begin{enumerate}[label=\alph*.]
+    \item What is the average turnaround time for these processes with the FCFS scheduling algorithm?
+    \item What is the average turnaround time for these processes with the SJF scheduling algorithm?
+    \item The SJF algorithm is supposed to improve performance, but notice that we chose to run process P1 at time 0 because we did not know that two shorter processes would arrive soon. Compute what the average turnaround time will be if the CPU is left idle for the first 1 unit and then SJF scheduling is used. Remember that processes P1 and P2 are waiting during this idle time, so their waiting time may increase. This algorithm could be known as future-knowledge scheduling.
+\end{enumerate}
+
+\subsection{Answer}
+\begin{enumerate}[label=\alph*.]
+    \item This calculation is straight forward since FCFS dictates that the process arriving first is allowed control of the CPU.
+    $$\frac{(0+8-0.0)+(0+8+4-0.4)+(0+8+4+1-1.0)}{3}=10.5333333333 \approx 10.53$$
+
+    \item In SJF, we look to the shortest burst time to find out which one to schedule next. We start with  $p_1$ since it is the first and only in the queue. Next, when the queue fills up, we choose the next process that has the lowest burst time and so on. Since all processes will arrive in one time unit, we don't have to worry about choosing before the queue has filled up.
+    $$\frac{(0+8-0.0)+(0+8+1-1.0)+(0+8+1+4-0.4)}{3}=9.53333333333 \approx 9.53$$
+
+    \item Since we will wait 1 unit of time, the queue will be completely filled and the algorithm will serve $p_3$ first, then $p_2$ and lastly $p_1$.
+    $$\frac{(1+1-1.0)+(1+1+4-0.4)+(1+1+4+8-0.0)}{3}=6.86666666667 \approx 6.87$$
+\end{enumerate}
+
+
+\pagebreak
+\section{Question 9}
+Consider the following set of processes, with the length of the CPU burst time given in milliseconds.
+\begin{table}[h]
+        \begin{center}
+            \begin{tabular}{c|c|c}
+                \textbf{Process} & \textbf{Burst Time} & \textbf{Priority}\\
+                \hline
+                $p_1$   &   2    &   2\\
+                $p_2$   &   1    &   1\\
+                $p_3$   &   8    &   4\\
+                $p_4$   &   4    &   2\\
+                $p_5$   &   5    &   3\\
+            \end{tabular}
+            \label{tab:table2}
+        \end{center}
+    \end{table}
+The processes are assumed to have arrived in the order P1, P2, P3, P4, P5, all at time 0.
+
+\begin{enumerate}[label=\alph*.]
+    \item Draw four Gantt charts that illustrate the execution of these processes using the following scheduling algorithms: FCFS, SJF, nonpreemptive priority (a larger priority number implies a higher priority), and RR (quantum = 2).
+    \item What is the turnaround time of each process for each of the scheduling algorithms in part a?
+    \item What is the waiting time of each process for each of these scheduling algorithms?
+    \item Which of the algorithms results in the minimum average waiting time (over all processes)?
+\end{enumerate}
+
+\pagebreak
+\subsection{Answer}
+\begin{enumerate}[label=\alph*.]
+    \item Gantt charts of each scheduling algorithm.
+    \begin{figure}[h]
+      \centering
+      \includegraphics[width=(\textwidth)]{Media/FCFS.png}
+      \caption{CPU schedule diagram for FCFS algorithm.}
+      \label{fig:FCFS}
+    \end{figure}
+    \begin{figure}[h]
+      \centering
+      \includegraphics[width=(\textwidth)]{Media/SJF.png}
+      \caption{CPU schedule diagram for SJF algorithm.}
+      \label{fig:SJF}
+    \end{figure}
+    \begin{figure}[h]
+      \centering
+      \includegraphics[width=(\textwidth)]{Media/Prio.png}
+      \caption{CPU schedule diagram for non-preemptive priority algorithm.}
+      \label{fig:Prio}
+    \end{figure}
+    \begin{figure}[h]
+      \centering
+      \includegraphics[width=(\textwidth)]{Media/RR.png}
+      \caption{CPU schedule diagram for RR algorithm.}
+      \label{fig:RR}
+    \end{figure}
+    \pagebreak
+    \item Turnaround time of each process for each algorithm.
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{c|c|c|c|c}
+                \textbf{Process} & \textbf{FCFS} & \textbf{SJF} & \textbf{Prio} & \textbf{RR}\\
+                \hline
+                $p_1$   &   2    &   3    &   15   &   2\\
+                $p_2$   &   3    &   1    &   20   &   3\\
+                $p_3$   &   11   &   20   &   8    &   20\\
+                $p_4$   &   15   &   7    &   19   &   13\\
+                $p_5$   &   20   &   12   &   13   &   18\\
+            \end{tabular}
+            \label{tab:table3}
+        \end{center}
+    \end{table}
+    \item Waiting time of each process for each algorithm.
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{c|c|c|c|c}
+                \textbf{Process} & \textbf{FCFS} & \textbf{SJF} & \textbf{Prio} & \textbf{RR}\\
+                \hline
+                $p_1$   &   0    &   1    &   13   &   0\\
+                $p_2$   &   2    &   0    &   19   &   2\\
+                $p_3$   &   3    &   12   &   0    &   12\\
+                $p_4$   &   11   &   3    &   15   &   9\\
+                $p_5$   &   15   &   7    &   8    &   13\\
+                \hline
+                \textbf{Sum} & 31 & 23 & 55 & 36\\
+            \end{tabular}
+            \label{tab:table4}
+        \end{center}
+    \end{table}
+    \item We can see from the sum row in the previous table that the total wait time is lowest for SJF, hence the average will also be lowest.
+\end{enumerate}
+
+\end{document}
