@@ -59,11 +59,13 @@ int extractPageNumber(int logicalAddress) {
 Controlls the main program flow.
 */
 int main(int argc, char *argv[]) {
+    // Open the file specified in argv
     FILE *file_handle = fopen(argv[1], "r");
     if(file_handle == NULL){
         perror("fopen");
         exit(EXIT_FAILURE);
     }
+    // Parse the text file and call the extractors
     char buffer[BUFFER_SIZE]; 
     while(fgets(buffer, BUFFER_SIZE - 1, file_handle) != NULL) 
     {
